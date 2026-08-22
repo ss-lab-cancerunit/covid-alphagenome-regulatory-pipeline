@@ -1,0 +1,19 @@
+diff --git a/src/alphagenome_pytorch/variant_scoring/__init__.py b/src/alphagenome_pytorch/variant_scoring/__init__.py
+index 93955a4..5181033 100644
+--- a/src/alphagenome_pytorch/variant_scoring/__init__.py
++++ b/src/alphagenome_pytorch/variant_scoring/__init__.py
+@@ -88,9 +88,11 @@ from .inference import (
+ )
+
+ # Visualization utilities
+-from .visualization_utils import (
+-    visualize_variant,
+-)
++
++# NOTE: visualization_utils import disabled in screen-specific no-viz repo copy.
++# This screening pipeline does not use official visualization utilities.
++# The official clean repo remains unchanged at external/alphagenome_pytorch_clean.
++
+
+ __all__ = [
+     # Types

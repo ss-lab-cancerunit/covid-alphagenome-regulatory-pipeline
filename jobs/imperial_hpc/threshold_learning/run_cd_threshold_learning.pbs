@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#PBS -N covid_cd_thresholds
+#PBS -l select=1:ncpus=4:mem=32gb
+#PBS -l walltime=04:00:00
+
+set -euo pipefail
+PROJECT_ROOT="${PROJECT_ROOT:-${PBS_O_WORKDIR:-}}"
+if [[ -z "$PROJECT_ROOT" || ! -d "$PROJECT_ROOT/src/covid_agpt" ]]; then
+  echo "Submit from the repository root or pass -v PROJECT_ROOT=/path/to/repo" >&2
+  exit 2
+fi
+cd "$PROJECT_ROOT"
+eval "$(~/miniforge3/bin/conda shell.bash hook)"
+conda activate agpt
+export PYTHONPATH="$PROJECT_ROOT/src:${PYTHONPATH:-}"
+
+python scripts/03_threshold_learning/run_threshold_learning.py \
+  --dataset cd211=results/coding_eqtl_211snvs_formal_cd_polya/tables/coding_eqtl_211snvs_formal_cd_polya_screening_merged_dedup.tsv \
+  --dataset cdgwas=results/coding_gwas_6268snvs_formal_cd_polya/tables/coding_gwas_6268snvs_formal_cd_polya_screening_merged_dedup.tsv \
+  --metric rel --metric act \
+  --backend deterministic --k 3 4 5 \
+  --outdir results/threshold_learning/cd

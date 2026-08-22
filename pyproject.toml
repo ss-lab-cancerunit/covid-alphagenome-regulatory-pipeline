@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "covid-agpt"
+version = "0.1.0"
+description = "COVID-19 regulatory variant screening with AlphaGenome-pytorch"
+requires-python = ">=3.12"
+dependencies = [
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "pyarrow",
+  "pyfaidx",
+  "safetensors",
+  "scikit-learn==1.8.0",
+  "torch",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

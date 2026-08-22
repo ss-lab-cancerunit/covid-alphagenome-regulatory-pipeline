@@ -1,0 +1,16 @@
+name: covid-agpt
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.12
+  - matplotlib
+  - numpy
+  - openpyxl
+  - pandas
+  - pyarrow
+  - pyfaidx
+  - safetensors
+  - scikit-learn
+  - pytorch
+  - pip

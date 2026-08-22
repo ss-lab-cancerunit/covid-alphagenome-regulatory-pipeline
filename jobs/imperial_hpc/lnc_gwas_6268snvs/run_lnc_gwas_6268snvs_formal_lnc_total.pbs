@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#PBS -N lnc6k_formal
+#PBS -l walltime=06:00:00
+#PBS -l select=1:ncpus=4:mem=80gb:ngpus=1
+#PBS -J 0-31
+#PBS -j oe
+
+set -euo pipefail
+
+PROJECT_ROOT="${PROJECT_ROOT:-${PBS_O_WORKDIR:-}}"
+if [[ -z "$PROJECT_ROOT" || ! -d "$PROJECT_ROOT/src/covid_agpt" ]]; then
+  echo "Submit from the repository root or pass -v PROJECT_ROOT=/path/to/repo" >&2
+  exit 2
+fi
+cd "$PROJECT_ROOT"
+
+eval "$(~/miniforge3/bin/conda shell.bash hook)"
+conda activate agpt
+
+export AGPT_REPO="$PROJECT_ROOT/external/alphagenome_pytorch_screen_noviz"
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}"
+export PYTHONPATH="$PROJECT_ROOT/src:$AGPT_REPO/src:$AGPT_REPO:${PYTHONPATH:-}"
+
+BATCH_ID="${PBS_ARRAY_INDEX:-${PBS_ARRAYID:-0}}"
+OUTDIR="$PROJECT_ROOT/results/lnc_gwas_6268snvs_formal_lnc_total"
+INPUT_FILE="$PROJECT_ROOT/input/lnc_gwas_6268snvs/lnc_gwas_6268snvs_input.tsv"
+
+mkdir -p "$OUTDIR"
+
+python scripts/01_screen/run_screen.py \
+  --branch lnc_gwas_6268snvs_formal_lnc_total \
+  --mode lnc \
+  --input "$INPUT_FILE" \
+  --outdir "$OUTDIR" \
+  --model-path "$PROJECT_ROOT/weights/model_all_folds.safetensors" \
+  --fasta-path "$PROJECT_ROOT/reference/gencode_v46/gencode.v46.GRCh38.primary_assembly.fa" \
+  --gtf-path "$PROJECT_ROOT/reference/gencode_v46/gencode.v46.annotation.gtf" \
+  --polya-gtf-path "$PROJECT_ROOT/reference/gencode_v46/gencode.v46.polyAs.gtf" \
+  --track-meta-path "$AGPT_REPO/src/alphagenome_pytorch/data/track_metadata_human.parquet" \
+  --batch-id "$BATCH_ID" \
+  --batch-size 200 \
+  --run-label "batch_$(printf "%04d" "$BATCH_ID")" \
+  --window-size 1048576 \
+  --rna-resolution 128 \
+  --rel-eps 1e-3 \
+  --selection-mode best_per_snv \
+  --track-policy auto \
+  --allow-unstranded-tracks \
+  --device cuda \
+  --overwrite

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#PBS -N cd_expand_relK4
+#PBS -l walltime=04:00:00
+#PBS -l select=1:ncpus=4:mem=80gb:ngpus=1
+#PBS -J 0-3
+#PBS -j oe
+
+set -euo pipefail
+
+PROJECT_ROOT="${PROJECT_ROOT:-${PBS_O_WORKDIR:-}}"
+if [[ -z "$PROJECT_ROOT" || ! -d "$PROJECT_ROOT/src/covid_agpt" ]]; then
+  echo "Submit from the repository root or pass -v PROJECT_ROOT=/path/to/repo" >&2
+  exit 2
+fi
+cd "$PROJECT_ROOT"
+
+eval "$(~/miniforge3/bin/conda shell.bash hook)"
+conda activate agpt
+
+export AGPT_REPO="$PROJECT_ROOT/external/alphagenome_pytorch_screen_noviz"
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}"
+export PYTHONPATH="$PROJECT_ROOT/src:$AGPT_REPO/src:$AGPT_REPO:${PYTHONPATH:-}"
+
+BATCH_ID="${PBS_ARRAY_INDEX:-${PBS_ARRAYID:-0}}"
+OUTDIR="$PROJECT_ROOT/results/coding_gwas_6268snvs_cd_expansion_relK4"
+INPUT_FILE="$PROJECT_ROOT/input/cd_expansion_relK4/cd_expansion_relK4_seed_snvs.tsv"
+
+mkdir -p "$OUTDIR"
+
+python scripts/01_screen/run_screen.py \
+  --branch coding_gwas_6268snvs_cd_expansion_relK4 \
+  --mode cd \
+  --input "$INPUT_FILE" \
+  --outdir "$OUTDIR" \
+  --model-path "$PROJECT_ROOT/weights/model_all_folds.safetensors" \
+  --fasta-path "$PROJECT_ROOT/reference/gencode_v46/gencode.v46.GRCh38.primary_assembly.fa" \
+  --gtf-path "$PROJECT_ROOT/reference/gencode_v46/gencode.v46.annotation.gtf" \
+  --polya-gtf-path "$PROJECT_ROOT/reference/gencode_v46/gencode.v46.polyAs.gtf" \
+  --track-meta-path "$AGPT_REPO/src/alphagenome_pytorch/data/track_metadata_human.parquet" \
+  --batch-id "$BATCH_ID" \
+  --batch-size 50 \
+  --run-label "batch_$(printf "%04d" "$BATCH_ID")" \
+  --window-size 1048576 \
+  --rna-resolution 128 \
+  --rel-eps 1e-3 \
+  --selection-mode threshold \
+  --track-policy auto \
+  --rel-cutoff 0.07261310375538144 \
+  --allow-unstranded-tracks \
+  --device cuda \
+  --overwrite
