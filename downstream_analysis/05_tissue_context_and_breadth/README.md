@@ -7,9 +7,9 @@ Script 02 derives the maximum REL for every unique coding gene x RNA-track combi
 Inputs:
 
 - `gtex_79_gene_68_tissue_zscore.tsv.gz`: gene-wise GTEx V11 tissue-expression z-scores from the final coding tissue-annotation package;
-- `gtex_73_gene_30_smts_zscore.tsv.gz`: the 30-SMTS matrix recovered from the final 73-gene reclustering package, with the previous cluster label removed.
-- `track_metadata_human.csv.gz`: AlphaGenome-pytorch human track metadata recovered from migration package 05.
+- `gtex_73_gene_30_smts_zscore.tsv.gz`: the 30-SMTS matrix used for the 73-gene analysis, with the previous cluster label removed;
+- `track_metadata_human.csv.gz`: AlphaGenome-pytorch human RNA-track metadata used for biosample labels.
 
 The AGPT response scripts read the coding expanded-event table from `../01_threshold_and_event_expansion/data/`, avoiding a duplicate copy of the same 6,625-event dataset.
 
-The repository script removes notebook-only `artifact_tool` workbook packaging and writes standard TSV and PNG outputs. The numerical clustering procedure is retained. The original upstream GTEx retrieval/annotation script was not present in the uploaded packages, so this stage begins from the curated expression matrices.
+Script 01 writes standard TSV and PNG outputs. The upstream GTEx retrieval and annotation workflow is not tracked in this repository. This analysis starts from the curated expression matrices listed above.
